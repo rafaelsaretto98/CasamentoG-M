@@ -153,21 +153,59 @@ supabaseClient
   .subscribe();
 
   // ========= CARREGAR RSVPs =========
-async function confirmarPresenca() {
-  const nome = document.getElementById("rsvpNome").value.trim();
-  const telefone = document.getElementById("rsvpTelefone").value.trim();
-  const acompanhantes = document.getElementById("rsvpAcompanhantes").value.trim();
-  const restricao = document.getElementById("rsvpRestricao")?.value.trim();
-  const presenca = document.getElementById("rsvpPresenca").value.trim();
-  const msg = document.getElementById("rsvpMsg");
+async function carregarRSVP() {
+  const msg = document.getElementById("adminLoginMsg");
+  const lista = document.getElementById("adminLista");
 
-  if (!nome || !telefone) {
-    msg.style.color = "red";
-    msg.textContent = "Preencha nome e telefone!";
+  const { data, error } = await supabaseClient
+    .from("rsvp")
+    .select("*")
+    .order("criado_em", { ascending: false });
+
+  lista.innerHTML = "";
+
+  if (error) {
+    console.error("Erro ao carregar confirmações:", error);
+    if (msg) {
+      msg.style.color = "red";
+      msg.textContent = "Erro ao carregar confirmações!";
+    }
     return;
   }
 
-  const dataAgora = new Date().toISOString();
+  if (!data || data.length === 0) {
+    lista.innerHTML = `<div class="admin-card vazio"><small>Nenhuma confirmação ainda 💚</small></div>`;
+    return;
+  }
+
+  data.forEach(d => {
+    const card = document.createElement("div");
+    card.className = "admin-card";
+    card.innerHTML = `
+      <strong>${d.nome}</strong><br>
+      📞 ${d.telefone}<br>
+      ✉ ${d.email}<br>
+      👥 Acompanhantes: ${d.acompanhantes}<br>
+      🍽 Restrição alimentar: ${d.restricao_alimentar}<br>
+      🗓 ${new Date(d.criado_em).toLocaleString("pt-BR")}
+    `;
+    lista.appendChild(card);
+  });
+}
+async function confirmarPresenca() {
+  const nome = document.getElementById("rsvpNome").value.trim();
+  const telefone = document.getElementById("rsvpTelefone").value.trim();
+  const email = document.getElementById("rsvpEmail").value.trim();
+  const acompanhantes = document.getElementById("rsvpAcompanhantes").value.trim();
+  const restricao = document.getElementById("rsvpRestricao").value.trim();
+  const presenca = document.getElementById("rsvpPresenca").value.trim();
+  const msg = document.getElementById("rsvpMsg");
+
+  if (!nome || !telefone || !email) {
+    msg.style.color = "red";
+    msg.textContent = "Preencha nome, telefone e email!";
+    return;
+  }
 
   const { error } = await supabaseClient
     .from("rsvp")
@@ -175,43 +213,26 @@ async function confirmarPresenca() {
       {
         nome: nome,
         telefone: telefone,
+        email: email,
         acompanhantes: Number(acompanhantes || 0),
-        restricao_alimentar: restricao || 'nenhuma',
+        restricao_alimentar: restricao || "nenhuma",
         presenca: presenca,
-        criado_em: dataAgora
+        criado_em: new Date().toISOString()
       }
     ]);
 
   if (error) {
     console.error("Erro ao salvar RSVP:", error);
     msg.style.color = "red";
-    msg.textContent = "Erro ao confirmar presença!";
+    msg.textContent = "Erro ao enviar confirmação!";
   } else {
-    msg.style.color = "#2C3A2A";
-    msg.textContent = "Presença confirmada com sucesso!";
-    enviarEmailNoivos(nome, telefone, acompanhantes, restricao, presenca, dataAgora);
+    msg.style.color = "var(--dark)";
+    msg.textContent = "Confirmação enviada com sucesso! 💚";
+
+
   }
 }
 
-// ========= FUNÇÃO DE EMAIL COMPLETA =========
-function enviarEmailNoivos(nome, telefone, acompanhantes, restricao, presenca, data) {
-  const corpoEmail = `
-  Novo RSVP recebido no site do casamento:
-
-  Nome: ${nome}
-  Telefone: ${telefone}
-  Acompanhantes: ${acompanhantes}
-  Restrição alimentar: ${restricao}
-  Presença: ${presenca === 'sim' ? 'Confirmada' : 'Não irá'}
-  Data do envio: ${new Date(data).toLocaleString('pt-BR')}
-
-  ---
-  Mensagem automática do site de casamento.
-  `;
-
-  console.log("=== EMAIL ENVIADO AOS NOIVOS ===");
-  console.log(corpoEmail);
-}
 
 
 // ========= INICIAR SITE =========
