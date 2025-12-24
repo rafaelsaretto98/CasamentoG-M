@@ -74,7 +74,7 @@ body {
 }
 
 #local, #rota {
-  background: var(--dark);
+  background: darkslategray;
   padding: 60px 20px;
   color: white;
 }
@@ -376,8 +376,8 @@ button:hover {
   background: #f0f7ed;
 }
 
-.admin-panel.hidden {
-  display: none;
+.hidden {
+  display: none !important;
 }
 
 .admin-container {
