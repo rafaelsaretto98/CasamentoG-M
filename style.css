@@ -343,3 +343,71 @@ button:hover {
   color: var(--sage);
   margin-bottom: 6px;
 }
+/* ===== LOGIN ADMIN ===== */
+.btn-admin-acesso {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--dark);
+  color: white;
+  padding: 14px 22px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 14px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  border: 2px solid rgba(168,187,162,0.3);
+  transition: 0.3s ease;
+  font-family: 'Playfair Display', serif;
+}
+
+.btn-admin-acesso:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+  background: #1f2a1f;
+}
+
+/* ===== PAINEL ===== */
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px 20px;
+  background: #f0f7ed;
+}
+
+.admin-panel.hidden {
+  display: none;
+}
+
+.admin-container {
+  width: 95%;
+  max-width: 700px;
+  margin: 30px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-card {
+  background: white;
+  padding: 26px 22px;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+  border-left: 5px solid var(--sage);
+  font-size: 18px;
+  text-align: left;
+  color: var(--dark);
+  overflow: hidden;
+}
+
+.admin-card.vazio {
+  text-align: center;
+  border-left: 4px dashed var(--sage);
+}
+
+.admin-refresh {
+  background: var(--dark);
+  margin-top: 28px;
+  color: white;
+}
