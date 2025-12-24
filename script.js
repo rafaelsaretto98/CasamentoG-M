@@ -3,15 +3,22 @@ const SUPABASE_URL = "https://ucvdhckwesjtqclrxyla.supabase.co";
 const SUPABASE_KEY = "sb_publishable_55_S2Qm_OjfeZ1Ivfq8VFQ_oulGT3Eo";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ========= MODAL NA ABERTURA =========
-window.onload = function() {
+// ========= CONFIGURAÇÕES GERAIS =========
+// Data corrigida para 24 de Maio de 2026 conforme o index.html
+const dataCasamento = new Date("2026-05-24T17:30:00-03:00");
+
+// ========= INICIALIZAÇÃO AO CARREGAR =========
+document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById("welcomeModal");
   if (modal) modal.style.display = "flex";
+
   iniciarCarousel();
   carregarDepoimentos();
-};
+  atualizarCountdown();
+  setInterval(atualizarCountdown, 1000);
+});
 
-// ========= FECHAR MODAL =========
+// ========= FUNÇÕES DE INTERFACE =========
 function fecharModal() {
   const modal = document.getElementById("welcomeModal");
   if (modal) {
@@ -21,11 +28,10 @@ function fecharModal() {
   }
 }
 
-// ========= COUNTDOWN =========
-const dataCasamento = new Date("2026-09-05T17:30:00-03:00");
-const countdownElement = document.getElementById("countdown");
-
 function atualizarCountdown() {
+  const countdownElement = document.getElementById("countdown");
+  if (!countdownElement) return;
+
   const agora = new Date();
   const diff = dataCasamento - agora;
 
@@ -42,25 +48,22 @@ function atualizarCountdown() {
   countdownElement.textContent = `Faltam ${dias} dias, ${horas}h ${min}m ${seg}s`;
 }
 
-setInterval(atualizarCountdown, 1000);
-atualizarCountdown();
-
-// ========= CARROSSEL 3 FOTOS POR VEZ =========
+// ========= CARROSSEL DE FOTOS =========
 function iniciarCarousel() {
   const slideContainer = document.querySelector('.slides');
   const slides = document.querySelectorAll('.slides img');
   let index = 0;
 
-  function nextSlide() {
-    index++;
-    if (index > slides.length - 3) index = 0;
-    slideContainer.style.transform = `translateX(${-index * 33.333}%)`;
+  if (slideContainer && slides.length > 0) {
+    setInterval(() => {
+      index++;
+      if (index > slides.length - 3) index = 0;
+      slideContainer.style.transform = `translateX(${-index * 33.333}%)`;
+    }, 4000);
   }
-
-  if (slideContainer) setInterval(nextSlide, 4000);
 }
 
-// ========= SALVAR RECADOS =========
+// ========= LÓGICA DE RECADOS (DEPOIMENTOS) =========
 async function salvarDepoimento() {
   const nome = document.getElementById("depoNome").value.trim();
   const mensagem = document.getElementById("depoTexto").value.trim();
@@ -72,47 +75,40 @@ async function salvarDepoimento() {
     return;
   }
 
-  const agora = new Date();
-  const dataFormatada = agora.toLocaleDateString("pt-BR");
-
   const { error } = await supabaseClient
     .from("depoimentos")
-    .insert([{ nome, mensagem, data: dataFormatada }]);
+    .insert([{ nome, mensagem }]);
 
   if (error) {
     feedback.style.color = "red";
     feedback.textContent = "Erro ao enviar recado!";
   } else {
+    document.getElementById("depoNome").value = "";
+    document.getElementById("depoTexto").value = "";
     feedback.style.color = "#2C3A2A";
     feedback.textContent = "Recado enviado com sucesso! 💚";
+    carregarDepoimentos();
   }
 }
 
-// ========= CARREGAR MURAL =========
 async function carregarDepoimentos() {
+  const mural = document.getElementById("carouselDepoimentos");
+  if (!mural) return;
+
   const { data, error } = await supabaseClient
     .from("depoimentos")
     .select("*")
-    .order("criado_em", { ascending: true });
+    .order("criado_em", { ascending: false }); // Alterado para criado_em
 
-  const mural = document.getElementById("carouselDepoimentos");
-
-  if (!mural) return;
-  mural.innerHTML = "";
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  if (!data || data.length === 0) {
+  if (error || !data || data.length === 0) {
     mural.innerHTML = `<div class="slide-stack active"><div class="card"><small>Nenhum recado ainda 💚</small></div></div>`;
     return;
   }
 
-  data.forEach(d => {
+  mural.innerHTML = "";
+  data.forEach((d, idx) => {
     const slide = document.createElement("div");
-    slide.className = "slide-stack";
+    slide.className = idx === 0 ? "slide-stack active" : "slide-stack";
     slide.innerHTML = `
       <div class="card">
         <p class="recado-data">${new Date(d.criado_em).toLocaleDateString("pt-BR")}</p>
@@ -125,118 +121,90 @@ async function carregarDepoimentos() {
   iniciarCarouselStack();
 }
 
-// ========= INICIAR SLIDES DO MURAL =========
 function iniciarCarouselStack() {
   const slides = document.querySelectorAll(".slide-stack");
-  let i = 0;
-  if (slides[i]) slides[i].classList.add("active");
+  if (slides.length <= 1) return;
 
+  let i = 0;
   clearInterval(window.carouselTimerStack);
   window.carouselTimerStack = setInterval(() => {
-    slides[i]?.classList.remove("active");
+    slides[i].classList.remove("active");
     i = (i + 1) % slides.length;
-    slides[i]?.classList.add("active");
+    slides[i].classList.add("active");
   }, 5000);
 }
 
-// ========= MAPAS =========
-function abrirMapaCerimonia() { window.open("https://maps.google.com", "_blank"); }
-function abrirMapaRecepcao() { window.open("https://maps.google.com", "_blank"); }
-function abrirRota() { window.open("https://maps.google.com", "_blank"); }
-
-// ========= REALTIME =========
-supabaseClient
-  .channel("casamento-recados")
-  .on("postgres_changes", { event: "INSERT", schema: "public", table: "depoimentos" }, () => {
-    carregarDepoimentos();
-  })
-  .subscribe();
-
-  // ========= CARREGAR RSVPs =========
-async function carregarRSVP() {
-  const msg = document.getElementById("adminLoginMsg");
-  const lista = document.getElementById("adminLista");
-
-  const { data, error } = await supabaseClient
-    .from("rsvp")
-    .select("*")
-    .order("criado_em", { ascending: false });
-
-  lista.innerHTML = "";
-
-  if (error) {
-    console.error("Erro ao carregar confirmações:", error);
-    if (msg) {
-      msg.style.color = "red";
-      msg.textContent = "Erro ao carregar confirmações!";
-    }
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    lista.innerHTML = `<div class="admin-card vazio"><small>Nenhuma confirmação ainda 💚</small></div>`;
-    return;
-  }
-
-  data.forEach(d => {
-    const card = document.createElement("div");
-    card.className = "admin-card";
-    card.innerHTML = `
-      <strong>${d.nome}</strong><br>
-      📞 ${d.telefone}<br>
-      ✉ ${d.email}<br>
-      👥 Acompanhantes: ${d.acompanhantes}<br>
-      🍽 Restrição alimentar: ${d.restricao_alimentar}<br>
-      🗓 ${new Date(d.criado_em).toLocaleString("pt-BR")}
-    `;
-    lista.appendChild(card);
-  });
-}
+// ========= LÓGICA DE RSVP =========
 async function confirmarPresenca() {
   const nome = document.getElementById("rsvpNome").value.trim();
   const telefone = document.getElementById("rsvpTelefone").value.trim();
-  const email = document.getElementById("rsvpEmail").value.trim();
-  const acompanhantes = document.getElementById("rsvpAcompanhantes").value.trim();
-  const restricao = document.getElementById("rsvpRestricao").value.trim();
-  const presenca = document.getElementById("rsvpPresenca").value.trim();
+  const emailElem = document.getElementById("rsvpEmail");
+  const email = emailElem ? emailElem.value.trim() : "Não informado";
+  const acompanhantes = document.getElementById("rsvpAcompanhantes").value;
+  const restricao = document.getElementById("rsvpRestricao").value;
+  const presenca = document.getElementById("rsvpPresenca").value;
   const msg = document.getElementById("rsvpMsg");
 
-  if (!nome || !telefone || !email) {
+  if (!nome || !telefone) {
     msg.style.color = "red";
-    msg.textContent = "Preencha nome, telefone e email!";
+    msg.textContent = "Preencha pelo menos nome e telefone!";
     return;
   }
 
   const { error } = await supabaseClient
     .from("rsvp")
-    .insert([
-      {
-        nome: nome,
-        telefone: telefone,
-        email: email,
-        acompanhantes: Number(acompanhantes || 0),
-        restricao_alimentar: restricao || "nenhuma",
-        presenca: presenca,
-        criado_em: new Date().toISOString()
-      }
-    ]);
+    .insert([{
+        nome,
+        telefone,
+        email,
+        acompanhantes: parseInt(acompanhantes) || 0,
+        restricao_alimentar: restricao,
+        presenca
+    }]);
 
   if (error) {
-    console.error("Erro ao salvar RSVP:", error);
+    console.error(error);
     msg.style.color = "red";
-    msg.textContent = "Erro ao enviar confirmação!";
+    msg.textContent = "Erro ao enviar confirmação.";
   } else {
-    msg.style.color = "var(--dark)";
-    msg.textContent = "Confirmação enviada com sucesso! 💚";
-
-
+    msg.style.color = "green";
+    msg.textContent = "Presença confirmada! Obrigado! 💚";
   }
 }
 
+// ========= PAINEL ADMIN =========
+async function carregarRSVPAdmin() {
+  const lista = document.getElementById("adminLista");
+  if (!lista) return;
 
+  const { data, error } = await supabaseClient
+    .from("rsvp")
+    .select("*")
+    .order("criado_em", { ascending: false }); // Alterado para criado_em
 
-// ========= INICIAR SITE =========
-document.addEventListener("DOMContentLoaded", () => {
-  iniciarCarousel();
-  carregarDepoimentos();
-});
+  if (error) {
+    console.error("Erro Supabase:", error);
+    lista.innerHTML = `<div class="admin-card erro">Erro ao carregar dados: ${error.message}</div>`;
+    return;
+  }
+
+  lista.innerHTML = data.length ? "" : `<div class="admin-card vazio">Nenhuma confirmação ainda.</div>`;
+
+  data.forEach(d => {
+    const card = document.createElement("div");
+    card.className = "admin-card";
+    card.innerHTML = `
+      <strong>${d.nome}</strong> (${d.presenca === 'sim' ? 'Confirmado' : 'Não irá'})<br>
+      📞 ${d.telefone} | ✉ ${d.email || 'Não informado'}<br>
+      👥 Acompanhantes: ${d.acompanhantes}<br>
+      🍽 Restrição: ${d.restricao_alimentar}<br>
+      <small>Data: ${new Date(d.criado_em).toLocaleString("pt-BR")}</small>
+    `;
+    lista.appendChild(card);
+  });
+}
+
+// ========= MAPAS =========
+function abrirMapaCerimonia() { window.open("https://maps.google.com/?q=Capela+Santa+Catarina+de+Alexandria+Joinville", "_blank"); }
+function abrirMapaRecepcao() { window.open("https://maps.google.com/?q=Sua+Recepcao+Aqui", "_blank"); }
+function abrirRota() { window.open("https://www.google.com/maps/dir/?api=1&destination=Capela+Santa+Catarina+de+Alexandria+Joinville", "_blank"); }
