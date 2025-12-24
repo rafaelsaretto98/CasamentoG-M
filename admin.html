@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel dos Noivos</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- MODAL DE LOGIN ADMIN -->
+<div id="adminLoginSection" class="modal admin-login-section">
+  <div class="modal-box admin-login-box">
+    <h2>Painel dos Noivos</h2>
+    <p>Acesso privado</p>
+
+    <input type="password" id="adminSenha" placeholder="Digite a senha">
+    <button onclick="verificarLogin()">Entrar no painel</button>
+    <p id="adminLoginMsg"></p>
+  </div>
+</div>
+
+<!-- PAINEL INTERNO -->
+<section id="adminPanel" class="admin-panel hidden">
+  <h1>Confirmações de Presença</h1>
+  <p class="admin-sub">Somente os noivos visualizam esta área</p>
+
+  <div class="admin-container">
+    <div id="adminLista"></div>
+  </div>
+
+  <button class="admin-refresh" onclick="carregarRSVP()">Atualizar lista</button>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+  // ✔ Inicialização do Supabase aqui também
+  const SUPABASE_URL = "https://ucvdhckwesjtqclrxyla.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_55_S2Qm_OjfeZ1Ivfq8VFQ_oulGT3Eo";
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+<script src="script.js"></script>
+
+<script>
+// ========== LOGIN DO PAINEL ==========
+const SENHA_NOIVOS = "noivos2026";
+
+function verificarLogin() {
+  const senha = document.getElementById("adminSenha").value.trim();
+  const msg = document.getElementById("adminLoginMsg");
+
+  if (senha !== SENHA_NOIVOS) {
+    msg.style.color = "red";
+    msg.textContent = "Senha incorreta!";
+    return;
+  }
+
+  // ✔ Oculta o modal de login corretamente
+  document.getElementById("adminLoginSection").style.display = "none";
+
+  // ✔ Mostra o painel interno
+  document.getElementById("adminPanel").classList.remove("hidden");
+
+  // ✔ Carrega as confirmações do banco
+  carregarRSVP();
+}
+
+// ========== CARREGAR CONFIRMAÇÕES DO BANCO ==========
+async function carregarRSVP() {
+  const lista = document.getElementById("adminLista");
+
+  const { data, error } = await supabaseClient
+    .from("rsvp")
+    .select("*")
+    .order("criado_em", { ascending: false });
+
+  lista.innerHTML = "";
+
+  if (error) {
+    console.error("Erro ao buscar confirmações:", error);
+    lista.innerHTML = `<div class="admin-card erro">Erro ao carregar confirmações</div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    lista.innerHTML = `<div class="admin-card vazio"><small>Nenhuma confirmação ainda 💚</small></div>`;
+    return;
+  }
+
+  data.forEach(d => {
+    const card = document.createElement("div");
+    card.className = "admin-card";
+    card.innerHTML = `
+      <strong>${d.nome}</strong><br>
+      📞 ${d.telefone}<br>
+      ✉ ${d.email}<br>
+      👥 Acompanhantes: ${d.acompanhantes}<br>
+      🍽 Restrição alimentar: ${d.restricao_alimentar}<br>
+      🗓 ${new Date(d.criado_em).toLocaleString("pt-BR")}
+    `;
+    lista.appendChild(card);
+  });
+}
+</script>
+
+</body>
+</html>
