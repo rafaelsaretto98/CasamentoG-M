@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casamento Grazielle & Mauricio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- MODAL DE BOAS-VINDAS (abre na abertura) -->
+<div id="welcomeModal" class="modal">
+  <div class="modal-box">
+    <h2>Bem-vindo ao nosso casamento</h2>
+    <p>Estamos muito felizes em ter você aqui conosco nesse momento tão especial!</p>
+    <button onclick="fecharModal()">Entrar no site</button>
+  </div>
+</div>
+
+
+<!-- MENU -->
+<nav>
+  <a href="#hero">Início</a>
+  <a href="#historia">Nossa História</a>
+  <a href="#galeria">Galeria</a>
+  <a href="#recados">Recados</a>
+  <a href="#local">Local</a>
+  <a href="#rota">Rota</a>
+</nav>
+
+<!-- HERO / ENTRADA -->
+<header id="hero" class="hero">
+  <div class="hero-overlay">
+    <h1>Grazielle & Mauricio</h1>
+    <p class="data">24 • 05 • 2026</p>
+    <div class="countdown" id="countdown"></div>
+  </div>
+</header>
+
+<!-- CARROSSEL AUTOMÁTICO DE FOTOS -->
+<section id="galeria">
+  <h2>Galeria de Fotos</h2>
+  <div class="carousel">
+    <div class="slides">
+      <img src="Imagens/1.jpeg" alt="Foto 1">
+      <img src="Imagens/2.jpeg" alt="Foto 2">
+      <img src="Imagens/3.jpeg" alt="Foto 3">
+      <img src="Imagens/4.jpeg" alt="Foto 4">
+      <img src="Imagens/5.jpeg" alt="Foto 5">
+      <img src="Imagens/6.jpeg" alt="Foto 6">
+      <img src="Imagens/7.jpeg" alt="Foto 7">
+      <img src="Imagens/8.jpeg" alt="Foto 8">
+      <img src="Imagens/9.jpeg" alt="Foto 9">
+      <img src="Imagens/10.jpeg" alt="Foto 10">
+    </div>
+  </div>
+</section>
+
+<!-- HISTÓRIA -->
+<section id="historia">
+  <h2>Nossa História</h2>
+  <div class="timeline">
+    <div class="time-item"><span>2018</span><p>O primeiro encontro que mudou tudo.</p></div>
+    <div class="time-item"><span>2020</span><p>A viagem que marcou nossas vidas.</p></div>
+    <div class="time-item"><span>2023</span><p>O pedido 💍</p></div>
+    <div class="time-item"><span>2026</span><p>O nosso grande dia! 🎉</p></div>
+  </div>
+</section>
+
+
+<!-- RSVP -->
+<section id="rsvpSection">
+  <h2>Confirmação de Presença</h2>
+
+  <div class="card rsvp-card">
+    <input type="text" id="rsvpNome" placeholder="Seu nome completo">
+
+    <input type="text" id="rsvpTelefone" placeholder="Seu telefone (WhatsApp)" maxlength="15">
+
+    <input type="number" id="rsvpAcompanhantes" placeholder="Número de acompanhantes" min="0" max="10">
+
+    <select id="rsvpRestricao">
+      <option value="nenhuma">Sem restrição alimentar</option>
+      <option value="vegetariano">Vegetariano</option>
+      <option value="vegano">Vegano</option>
+      <option value="sem_gluten">Sem glúten</option>
+      <option value="sem_lactose">Sem lactose</option>
+      <option value="outra">Outra (especificar no recado)</option>
+    </select>
+
+    <select id="rsvpPresenca">
+      <option value="sim">Confirmar presença</option>
+      <option value="nao">Não poderei ir</option>
+    </select>
+
+    <button onclick="confirmarPresenca()">Enviar confirmação</button>
+    <p id="rsvpMsg"></p>
+  </div>
+
+</section>
+
+<!-- RECADOS -->
+<section id="recados">
+  <h2>Deixe seu recado</h2>
+  <div class="card depo-card">
+    <input type="text" id="depoNome" placeholder="Seu nome">
+    <textarea id="depoTexto" placeholder="Escreva seu recado..." rows="4"></textarea>
+    <button onclick="salvarDepoimento()">Enviar recado</button>
+    <p id="depoMsg"></p>
+  </div>
+
+  <h2>Mural de Recados</h2>
+  <div class="carousel-stack">
+    <div id="carouselDepoimentos"></div>
+  </div>
+</section>
+
+<!-- LOCAL -->
+<section id="local">
+  <h2>Local do Casamento</h2>
+  <div class="card">
+    <p><strong>Cerimônia:</strong> 17h30<br>Capela Santa Catarina de Alexandria, 9660 – Zona Industrial, Joinville</p>
+  </div>
+</section>
+
+<!-- ROTA -->
+<section id="rota">
+  <h2>Rota</h2>
+  <div class="card">
+    <button onclick="abrirMapaCerimonia()">Abrir mapa da cerimônia</button>
+    <button onclick="abrirMapaRecepcao()">Abrir mapa da recepção</button>
+    <button onclick="abrirRota()">Traçar rota: cerimônia → recepção</button>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>Desenvolvido com carinho para o nosso grande dia.</p>
+  <p class="assinatura">Grazielle & Mauricio</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
